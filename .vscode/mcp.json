@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "sfcc-dev": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "sfcc-dev-mcp", "--dw-json", "${workspaceFolder}/dw.json"]
+    }
+  }
+}

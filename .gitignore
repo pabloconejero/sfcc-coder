@@ -1,0 +1,13 @@
+# Credenciales — NUNCA subir
+dw.json
+*.pem
+.env
+
+# Modelos y artefactos locales
+*.gguf
+node_modules/
+evals/results/
+
+# SO / editor
+.DS_Store
+Thumbs.db

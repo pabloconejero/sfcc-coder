@@ -1,0 +1,8 @@
+{
+  "hostname": "tu-sandbox.demandware.net",
+  "username": "usuario",
+  "password": "password-o-access-key",
+  "client-id": "client-id-ocapi",
+  "client-secret": "client-secret",
+  "code-version": "version1"
+}
