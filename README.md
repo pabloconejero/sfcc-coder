@@ -2,66 +2,62 @@
 
 Asistente de código IA **100% local** especializado en **Salesforce B2C Commerce Cloud (SFCC / SFRA)**.
 
-El objetivo: tener tu propio "Claude Code" corriendo en tu máquina, integrado en VSCode (y opcionalmente OpenCode), con conocimiento profundo de SFCC vía MCP — sin que ni una línea de código salga de tu equipo.
+Tu propio "Claude Code" corriendo en tu máquina, integrado en OpenCode y VSCode, con conocimiento real de SFCC vía MCP — sin que ni una línea de código salga de tu equipo.
+
+**Estado: stack completo validado.** Modelo 80B local a **48 tok/s**, contexto **64K**, tool calling funcionando contra `sfcc-dev-mcp`, agente con reglas SFRA en `agents.md`.
 
 ## ¿Qué cubre?
 
-- Desarrollo SFRA (controllers, models, ISML, client-side JS)
-- OCAPI / SCAPI
-- Business Manager y configuración
-- Job Framework
-- OMS e integraciones
-- Services framework y DevOps (sgmf, cartridges, code versions)
+Desarrollo SFRA (controllers, models, ISML, client-side), OCAPI/SCAPI, Business Manager, Job Framework, OMS, Services y DevOps.
 
-## Arquitectura (resumen)
+## Arquitectura
 
 ```
-┌─────────────────────────────────────────────────┐
-│  VSCode                                         │
-│  ├─ Copilot Chat (BYOK) ──► LM Studio (chat)    │
-│  ├─ Continue/Twinny ──────► LM Studio (FIM)     │
-│  └─ MCP (.vscode/mcp.json) ─► sfcc-dev-mcp      │
-└─────────────────────────────────────────────────┘
-
-LM Studio sirve DOS modelos:
-  1. Qwen3-Coder-Next 80B-A3B (Q3_K_S) → chat/agéntico  (~35 tok/s)
-  2. Qwen2.5-Coder 3B/7B               → tab-completion (FIM)
+┌──────────────────────────────────────────────────────┐
+│  OpenCode / VSCode                                   │
+│  ├─ Chat agéntico ────► Ollama (sfcc-coder, 80B)     │
+│  ├─ Continue/Twinny ──► Ollama (Qwen2.5-Coder, FIM)  │
+│  ├─ agents.md ────────  reglas SFRA del agente       │
+│  └─ MCP ──────────────► sfcc-dev-mcp (docs/sandbox)  │
+└──────────────────────────────────────────────────────┘
 ```
 
-Estrategia **dual-model**: un MoE grande para razonar y usar herramientas, un modelo pequeño y denso para autocompletado instantáneo. Un solo modelo para todo no funciona: el 80B es demasiado lento para FIM.
+- **Runtime: Ollama** (`http://localhost:11434/v1`). LM Studio quedó relegado a gestor de descargas tras la comparativa medida (9 vs 48 tok/s — historia en troubleshooting).
+- **Dual-model**: 80B MoE para razonar/agente; modelo pequeño denso para tab-completion.
+- **Conocimiento SFCC**: el modelo NO lo tiene (alucina con seguridad — ver `evals/baseline-sin-tools.md`); lo aporta el MCP en cada consulta.
 
-## Hardware de referencia
+## Config validada (hardware de referencia)
 
-| Componente | Mínimo probado |
+| | |
 |---|---|
-| GPU | RTX 5080 16GB (atención en GPU) |
-| RAM | 32GB (expertos del MoE en CPU — va al ~99%, ver troubleshooting) |
-| CPU | Ryzen 7 9800X3D (8 threads para inferencia) |
+| Hardware | R7 9800X3D · RTX 5080 16GB · 32GB RAM |
+| Modelo | Qwen3-Coder-Next 80B-A3B **UD-Q3_K_S** (unsloth) |
+| Contexto | **65536** (KV cache q8_0 + flash attention) |
+| Reparto | 58% CPU (expertos) / 42% GPU (atención + KV) |
+| Rendimiento | **48.19 tok/s** · CPU ~60°C · sin swap |
 
 ## Quickstart
 
-1. Lee [`SETUP.md`](SETUP.md) — instalación paso a paso.
-2. Arranca LM Studio con la config de [`config/lmstudio.md`](config/lmstudio.md).
-3. Arranca el MCP server: `./scripts/run-sfcc-coder.sh` ⚠️ **si el MCP no está corriendo, el tool calling falla en silencio**.
-4. Abre VSCode en este repo: `.vscode/mcp.json` ya está configurado.
+1. [`SETUP.md`](SETUP.md) — instalación paso a paso (Ollama + MCP + OpenCode/VSCode)
+2. `Modelfile` (raíz) — config del modelo lista para `ollama create`
+3. `agents.md` — las reglas SFRA del agente (se copia a cada proyecto de trabajo)
+4. ⚠️ Los tres fallos silenciosos clásicos: MCP apagado, contexto por defecto, desbordamiento de VRAM → [troubleshooting](docs/05-troubleshooting.md)
 
-## Documentación / ruta de aprendizaje
+## Documentación
 
-| Doc | Qué aprenderás |
+| Doc | Contenido |
 |---|---|
-| [docs/01-arquitectura.md](docs/01-arquitectura.md) | Por qué este diseño: dual-model, MoE con offload híbrido, MCP |
-| [docs/02-modelos.md](docs/02-modelos.md) | Cuantización, contexto, GPU offload — y por qué los defaults te sabotean |
-| [docs/03-mcp.md](docs/03-mcp.md) | Qué es MCP, cómo funciona sfcc-dev-mcp, modo docs-only |
-| [docs/04-integracion-vscode.md](docs/04-integracion-vscode.md) | BYOK, inline completions, diferencias con OpenCode |
-| [docs/05-troubleshooting.md](docs/05-troubleshooting.md) | Los errores que ya cometimos para que no los repitas |
-| [docs/06-roadmap.md](docs/06-roadmap.md) | Evals, fine-tuning, servidor de inferencia corporativo |
+| [docs/01-arquitectura.md](docs/01-arquitectura.md) | Por qué este diseño: dual-model, MoE híbrido, MCP vs fine-tuning |
+| [docs/02-modelos.md](docs/02-modelos.md) | Cuantización (UD), contexto, KV cache, offload — y cómo los defaults sabotean |
+| [docs/03-mcp.md](docs/03-mcp.md) | MCP, sfcc-dev-mcp, modo docs-only, fallos silenciosos |
+| [docs/04-integracion.md](docs/04-integracion.md) | OpenCode (validado), VSCode BYOK, Continue, agents.md |
+| [docs/05-troubleshooting.md](docs/05-troubleshooting.md) | La saga completa: 9 → 48 tok/s, diagnóstico paso a paso |
+| [docs/06-roadmap.md](docs/06-roadmap.md) | Evals, fine-tuning, servidor corporativo |
 
-## Errores #1 (léelos antes de tocar nada)
+## Uso en un proyecto SFCC real
 
-1. **`.vscode/mcp.json` usa la clave `"servers"`**, no `"mcpServers"` (eso es formato Cursor). Es el fallo de setup más común al copiar configs de internet.
-2. **Contexto por defecto = muerte.** Ollama arranca a 4096 tokens; el system prompt + definiciones de tools de un agente se lo comen entero. Mínimo viable: 16K, recomendado 32K.
-3. **MCP server apagado = el modelo "no usa herramientas"** sin dar ningún error. Compruébalo siempre primero (`scripts/healthcheck.sh`).
+Copia a la raíz del proyecto (p. ej. tu clone de SFRA): `opencode.json`, `agents.md` y `.vscode/mcp.json`. Abre OpenCode ahí y el agente tendrá modelo + MCP + reglas.
 
 ## Licencia
 
-MIT — ver [LICENSE](LICENSE).
+MIT.

@@ -1,32 +1,14 @@
-# Configuración LM Studio (referencia rápida)
+# LM Studio (relegado a herramienta secundaria)
 
-## Modelo principal: Qwen3-Coder-Next 80B-A3B (Q3_K_S)
+Tras la comparativa medida (9 tok/s vs 48 en Ollama, mismo hardware y GGUF — ver docs/05), LM Studio dejó de ser el runtime. Sigue siendo útil para:
 
-| Ajuste | Valor |
-|---|---|
-| Context Length | 32768 |
-| GPU Offload | Máximo |
-| Force expert weights to CPU | ON |
-| CPU Thread Pool Size | 8 |
-| Flash Attention | ON |
-| Keep model in memory | ON |
+- **Descargar GGUF** con buena UI de búsqueda (los ficheros quedan en `~\.lmstudio\models` y se importan a Ollama vía Modelfile)
+- Chatear rápido con un modelo para probarlo
 
-Rendimiento de referencia (RTX 5080 + 9800X3D + 32GB): **~35 tok/s**.
+## Por qué falló como runtime (en este hardware)
 
-### Presión de RAM al ~99%
+1. Slider de threads capado a 4 (detección errónea del 9800X3D)
+2. "Layers to force to CPU" a medias → desbordamiento de VRAM silencioso vía fallback del driver NVIDIA
+3. Sus avisos de memoria no contemplan el reparto expertos-a-CPU (falsos "too large" y falsos OK)
 
-Es lo esperado con 32GB: los expertos del MoE viven en RAM. Si el sistema empieza a hacer swap o se congela:
-- Reduce 1-2 capas de expertos en CPU (mueve alguna a GPU si queda VRAM)
-- O baja el contexto a 24576
-- Cierra Chrome antes de cargar el modelo (en serio)
-
-## Modelo FIM: Qwen2.5-Coder 7B (Q4_K_M)
-
-| Ajuste | Valor |
-|---|---|
-| Context Length | 8192 |
-| GPU Offload | Máximo (cabe entero en VRAM junto a la atención del 80B; si no, usa el 3B) |
-
-## Servidor
-
-Developer → Start Server → `http://localhost:1234/v1`. Activa "serve on local network" SOLO si quieres acceder desde otra máquina (ojo en el trabajo).
+Si aun así lo usas: contexto 32768, GPU offload máximo, **force expert weights to CPU al máximo**, flash attention ON, y verifica "Memoria GPU compartida" ≈ 0 durante la generación.

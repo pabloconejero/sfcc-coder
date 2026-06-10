@@ -1,29 +1,27 @@
 #!/usr/bin/env bash
-# Verifica que todo el stack está vivo antes de pelearte con VSCode.
+# Verifica el stack: Ollama + modelo + MCP.
 set -uo pipefail
-LM_URL="${LM_URL:-http://localhost:1234}"
+OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"
 
-echo "== 1/3 LM Studio =="
-if curl -sf "$LM_URL/v1/models" > /tmp/lms_models.json; then
-  echo "OK - servidor respondiendo en $LM_URL"
-  echo "Modelos cargados:"
-  grep -o '"id":"[^"]*"' /tmp/lms_models.json | sed 's/"id":/  - /; s/"//g'
+echo "== 1/3 Ollama =="
+if curl -sf "$OLLAMA_URL/v1/models" > /tmp/ollama_models.json; then
+  echo "OK - respondiendo en $OLLAMA_URL"
+  grep -o '"id":"[^"]*"' /tmp/ollama_models.json | sed 's/"id":/  - /; s/"//g'
 else
-  echo "FALLO - LM Studio no responde. Developer -> Start Server."
+  echo "FALLO - Ollama no responde (¿servicio arrancado?)"
 fi
 
 echo "== 2/3 Generacion =="
-RESP=$(curl -sf "$LM_URL/v1/chat/completions" \
+RESP=$(curl -sf "$OLLAMA_URL/v1/chat/completions" \
   -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"di OK"}],"max_tokens":5}' || true)
-if [[ -n "$RESP" ]]; then echo "OK - el modelo genera tokens"; else echo "FALLO - el modelo no genera (¿cargado?)"; fi
+  -d '{"model":"sfcc-coder","messages":[{"role":"user","content":"di OK"}],"max_tokens":5}' || true)
+if [[ -n "$RESP" ]]; then echo "OK - sfcc-coder genera"; else echo "FALLO - revisa 'ollama list' y el nombre del modelo"; fi
 
 echo "== 3/3 MCP (sfcc-dev) =="
 if pgrep -f "sfcc-dev-mcp" > /dev/null; then
   echo "OK - proceso sfcc-dev-mcp vivo"
 else
-  echo "AVISO - no veo el proceso sfcc-dev-mcp."
-  echo "  Si usas .vscode/mcp.json, VSCode lo arranca al usarlo (revisa Output -> MCP)."
-  echo "  Para arrancarlo a mano: ./scripts/run-sfcc-coder.sh"
+  echo "AVISO - proceso no visible."
+  echo "  OpenCode lo arranca solo al iniciar; VSCode al usarlo (Output -> MCP)."
   echo "  RECUERDA: MCP apagado = tool calling falla EN SILENCIO."
 fi

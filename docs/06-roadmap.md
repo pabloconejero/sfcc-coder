@@ -1,25 +1,18 @@
 # 06 — Roadmap
 
-## 1. Baseline de evaluación (siguiente paso)
+## ✅ Hecho
+- Stack validado: Ollama + 80B UD-Q3_K_S a 48 tok/s, 64K ctx, MCP con tool calling verificado, OpenCode + agents.md con reglas SFRA
+- Comparativa de runtimes medida (LM Studio descartado como runtime)
+- Primeras 3 evals de idioms + baseline de alucinación documentado
 
-Ejecutar la suite de 50+ prompts en 7 dominios SFCC (SFRA, ISML, OCAPI/SCAPI, Business Manager, Job Framework, OMS, Services/DevOps) contra el setup actual. Objetivo: número de referencia para comparar modelos/configs objetivamente en vez de "a ojo". Estructura en `evals/`.
+## En curso
+- Ciclo fallo → regla (agents.md) → eval: pendientes hooks OCAPI/SCAPI, Job Framework, servicios (LocalServiceRegistry), client-side por eventos
+- Montar Continue para inline completions (qwen2.5-coder:7b)
+- Portar reglas de agents.md a instrucciones de workspace de VSCode
 
-## 2. Fine-tuning (en evaluación)
-
-- LoRA sobre el 80B MoE: muy caro en recursos, probablemente inviable en este hardware
-- Plan más realista: fine-tune de un modelo **denso pequeño** (7-14B) con dataset SFCC, y medir contra el baseline si MCP + modelo grande sigue ganando
-- Decisión guiada por las evals, no por hype
-
-## 3. Despliegue corporativo
-
-Los portátiles del trabajo no tienen GPU para esto. Arquitectura acordada:
-
-- **Servidor de inferencia centralizado** con vLLM o sglang (mejor throughput multi-usuario que LM Studio)
-- Mismo API OpenAI-compatible → los clientes solo cambian `baseURL`
-- Pendiente: auth, rate limiting, y política de datos (el código viajaría al servidor interno — sigue sin salir de la empresa, pero ya no es on-device)
-
-## 4. Empaquetado
-
-- Script de instalación one-shot
-- Pin de versiones (sfcc-dev-mcp, extensiones)
-- CI básico que valide los JSON de config
+## Siguiente
+1. **Suite de evals completa** (50+ prompts, 7 dominios) y baseline numérico
+2. **Sandbox**: dw.json + modo completo del MCP (logs, system objects, upload de cartridge)
+3. **Fine-tuning** (solo si las evals demuestran que MCP+reglas no bastan): LoRA sobre denso pequeño, nunca sobre el 80B MoE
+4. **Despliegue corporativo**: servidor central vLLM/sglang, mismo API → clientes cambian solo baseURL. Pendiente: auth, rate limiting, política de datos
+5. **Empaquetado**: instalación one-shot, versiones pinneadas, CI que valide configs

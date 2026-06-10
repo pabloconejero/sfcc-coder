@@ -1,23 +1,23 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "lmstudio": {
+    "ollama": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "LM Studio (local)",
-      "options": { "baseURL": "http://localhost:1234/v1" },
+      "name": "Ollama (local)",
+      "options": { "baseURL": "http://localhost:11434/v1" },
       "models": {
-        "qwen3-coder-next-80b-a3b": {
-          "name": "Qwen3-Coder-Next 80B (Q3_K_S)",
-          "limit": { "context": 32768, "output": 8192 }
+        "sfcc-coder": {
+          "name": "SFCC-Coder (Qwen3-Coder-Next 80B)",
+          "limit": { "context": 65536, "output": 8192 }
         }
       }
     }
   },
-  "model": "lmstudio/qwen3-coder-next-80b-a3b",
+  "model": "ollama/sfcc-coder",
   "mcp": {
     "sfcc-dev": {
       "type": "local",
-      "command": ["npx", "-y", "sfcc-dev-mcp", "--dw-json", "./dw.json"],
+      "command": ["npx", "-y", "sfcc-dev-mcp"],
       "enabled": true
     }
   }

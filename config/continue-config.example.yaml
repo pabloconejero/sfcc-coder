@@ -1,12 +1,11 @@
 # Ejemplo de config para Continue (~/.continue/config.yaml)
-# Solo la parte de autocomplete — el chat lo lleva Copilot Chat BYOK.
+# Autocomplete con el modelo FIM pequeño servido por Ollama.
 name: sfcc-coder-local
 version: 0.0.1
 models:
   - name: qwen2.5-coder-fim
-    provider: openai
-    apiBase: http://localhost:1234/v1
-    apiKey: lm-studio
-    model: qwen2.5-coder-7b-instruct
+    provider: ollama
+    apiBase: http://localhost:11434
+    model: qwen2.5-coder:7b
     roles:
       - autocomplete

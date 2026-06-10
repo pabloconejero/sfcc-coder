@@ -1,0 +1,15 @@
+# Modelfile de referencia — sfcc-coder (validado 2026-06: 48 tok/s en R7 9800X3D + RTX 5080 16GB + 32GB RAM)
+# Ajusta la ruta FROM a tu GGUF local (descargado con LM Studio o desde Hugging Face).
+# Crear: ollama create sfcc-coder -f Modelfile
+
+FROM C:/ruta/al/Qwen3-Coder-Next-80B-A3B-UD-Q3_K_S.gguf
+
+PARAMETER num_ctx 65536
+PARAMETER num_thread 8
+PARAMETER temperature 0.7
+PARAMETER top_p 0.8
+PARAMETER top_k 20
+PARAMETER repeat_penalty 1.05
+
+SYSTEM Eres SFCC-Coder, experto en Salesforce B2C Commerce Cloud y SFRA. Si no estás seguro de la firma exacta de una API dw.*, dilo explícitamente en vez de inventarla. Cuando tengas herramientas disponibles, consúltalas antes de afirmar nada sobre APIs.
+re APIs.re APIs.
